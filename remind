@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# ------------------------------------------------------------------------------
+# options                                                                options
+# ------------------------------------------------------------------------------
+
+# set default values
+HOR=0
+MIN=0
+SEC=0
+
+# check passed options
+while getopts ':h:m:s:' OPTION "$@"
+do
+
+  case "$OPTION" in
+
+    'h') HOR="$OPTARG"
+         ;;
+
+    'm') MIN="$OPTARG"
+         ;;
+
+    's') SEC="$OPTARG"
+         ;;
+
+    '?') echo "unknown option: -$OPTARG"
+         exit 1
+         ;;
+
+    ':') echo "missing argument: -$OPTARG <argument>"
+         exit 1
+         ;;
+
+  esac
+
+done
+
+# drop parsed options
+shift "$(( OPTIND - 1 ))"
+
+# use all positional parameters as message
+MSG="$*"
+
+# no message given
+if [ -z "$MSG" ] ; then
+
+  # use timestamp
+  MSG=$(date +'%F %T %Z')
+
+fi
+
+# ------------------------------------------------------------------------------
+# commands                                                              commands
+# ------------------------------------------------------------------------------
+
+# calculate total number of seconds (at most 18 hours)
+TSEC=$(bc <<< "s = $HOR * 3600 + $MIN * 60 + $SEC ; if (s <= 64800) print s" 2>'/dev/null')
+
+# check number
+if [ -z "$TSEC" ] ; then
+
+  # notify user
+  echo 'you cannot wait longer than 18 hours'
+
+  # signalize trouble
+  exit 1
+
+fi
+
+# start timer
+nohup remind.sleep "$TSEC" "$MSG" &>'/dev/null' &
+
+# calculate popup time
+POPUP=$(date --date="$(date +'%F %T %Z') + $TSEC seconds" +'%F %T')
+
+# show message
+printf '%s %s\n' "$POPUP" "$MSG"
+
+# signalize success
+exit 0
+

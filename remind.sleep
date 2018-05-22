@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# wait
+sleep "$1"
+
+# show message
+( nohup leafpad <<< "$2" &>'/dev/null' & )
+
+# play sound
+( nohup play -q '/usr/share/sounds/freedesktop/stereo/complete.oga' & )
+
+# signalize success
+exit 0
+
