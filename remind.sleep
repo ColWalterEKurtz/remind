@@ -1,13 +1,22 @@
 #!/bin/bash
 
+# create temporary file for message
+TEMPFILE=$(mktemp --suffix=".sleep")
+
+# remove file on exit
+trap 'rm -f "$TEMPFILE"' EXIT
+
+# write message to file
+echo "$2" > "$TEMPFILE"
+
 # wait
 sleep "$1"
 
-# show message
-( nohup leafpad <<< "$2" &>'/dev/null' & )
-
 # play sound
 ( nohup play -q '/usr/share/sounds/freedesktop/stereo/complete.oga' & )
+
+# show message
+( nohup xed --new-window "$TEMPFILE" &>'/dev/null' )
 
 # signalize success
 exit 0
